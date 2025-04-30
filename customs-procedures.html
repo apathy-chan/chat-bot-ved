@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таможенные процедуры | Личный кабинет участника ВЭД ФТС России</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="Logo.png" alt="ФТС России">
+                    <div class="logo-text">
+                        <h1>Личный кабинет участника ВЭД</h1>
+                        <p>Федеральная таможенная служба</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="help-btn" onclick="window.location.href='index.html?section=customs-procedures&referrer=' + encodeURIComponent(window.location.pathname)">
+                        <img src="Help.png" alt="Помощь" style="width:24px; height:24px;">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+     <div class="navigation-cards">
+        <div class="container">
+            <div class="cards-container">
+                <a href="glavnaya.html" class="nav-card">
+                    <div class="card-content">Главная</div>
+                </a>
+                <a href="pre-info.html" class="nav-card">
+                    <div class="card-content">Предварительное информирование</div>
+                </a>
+                <a href="account.html" class="nav-card">
+                    <div class="card-content">Лицевой счет</div>
+                </a>
+                <a href="archive.html" class="nav-card">
+                    <div class="card-content">Электронный архив</div>
+                </a>
+                <a href="signature.html" class="nav-card">
+                    <div class="card-content">Электронная подпись</div>
+                </a>
+                <a href="customs-procedures.html" class="nav-card active">
+                    <div class="card-content">Таможенные процедуры</div>
+                </a>
+                <a href="lk.html" class="nav-card">
+                    <div class="card-content">Личный кабинет</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1 class="section-title">Таможенные процедуры</h1>
+
+            <div class="procedures-menu">
+                <div class="procedure-card">
+                    <h3>Выпуск для внутреннего потребления</h3>
+                    <p>Основная таможенная процедура</p>
+                    <button class="procedure-btn">Подробнее</button>
+                </div>
+
+                <div class="procedure-card">
+                    <h3>Экспорт</h3>
+                    <p>Вывоз товаров с таможенной территории</p>
+                    <button class="procedure-btn">Подробнее</button>
+                </div>
+
+                <div class="procedure-card">
+                    <h3>Таможенный транзит</h3>
+                    <p>Перевозка иностранных товаров</p>
+                    <button class="procedure-btn">Подробнее</button>
+                </div>
+
+                <!-- Другие процедуры -->
+            </div>
+
+            <div class="info-section">
+                <h2>Мои процедуры</h2>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Тип процедуры</th>
+                            <th>Дата начала</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DT-2025-456789</td>
+                            <td>Выпуск для внутреннего потребления</td>
+                            <td>15.04.2025</td>
+                            <td><span class="status in-process">В процессе</span></td>
+                            <td><button class="small-btn">Подробнее</button></td>
+                        </tr>
+                        <tr>
+                            <td>EXP-2025-123456</td>
+                            <td>Экспорт</td>
+                            <td>10.04.2025</td>
+                            <td><span class="status completed">Завершено</span></td>
+                            <td><button class="small-btn">Подробнее</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+</body>
+</html>

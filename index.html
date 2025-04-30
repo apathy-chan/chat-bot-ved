@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ЧаВо бот</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 10px;
+            background-color: #52b788;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        #chat-box {
+            height: 400px;
+            overflow-y: scroll;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .user-message {
+            background-color: #fefae0;
+            padding: 12px 15px;
+            border-radius: 18px 18px 0 18px;
+            align-self: flex-end;
+            max-width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .bot-message {
+            background-color: #fefae0;
+            padding: 12px 15px;
+            border-radius: 18px 18px 18px 0;
+            align-self: flex-start;
+            max-width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .bot-header {
+            font-weight: bold;
+            color: #2d6a4f;
+            margin-bottom: 5px;
+        }
+        #user-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #user-input:focus {
+            outline: none;
+        }
+        .input-container {
+            position: relative;
+        }
+        #suggestions {
+            position: absolute;
+            bottom: 100%;
+            width: 100%;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background: #f5f5f5;
+        }
+        .welcome-message {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .answer-image {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block;
+        }
+        .answer-link {
+            color: #2d6a4f;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .answer-link:hover {
+            color: #1b4332;
+            text-decoration: none;
+        }
+        .keywords-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .keyword {
+            background-color: #d8f3dc;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .keyword:hover {
+            background-color: #b7e4c7;
+        }
+        .section-btn {
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .section-btn:hover {
+            background-color: #1b4332;
+        }
+        .sections-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .support-btn {
+            background-color: #d00000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .support-btn:hover {
+            background-color: #9d0208;
+        }
+        .options-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .option-btn {
+            background-color: #40916c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .option-btn:hover {
+            background-color: #2d6a4f;
+        }
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .question-item {
+            background-color: #d8f3dc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .question-item:hover {
+            background-color: #b7e4c7;
+        }
+        .loading-dots::after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+        .return-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .return-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <h1>ЧаВо бот</h1>
+    <div class="welcome-message">Виртуальный ассистент по всем часто задаваемым вопросам с портала «Личный кабинет участника ВЭД ФТС России»</div>
+
+    <div id="chat-box"></div>
+
+    <div class="input-container">
+        <div id="suggestions"></div>
+        <input type="text" id="user-input" placeholder="Введите запрос..." onkeypress="handleKeyPress(event)" oninput="showSuggestions()">
+    </div>
+
+    <script>
+        // Данные из FAQ.json с разделами и ключевыми словами
+        const faqData = {
+            sections: [
+                {
+                    id: "signature",
+                    name: "Работа с электронной подписью",
+                    keywords: ["эп", "электронная подпись", "криптопро", "плагин", "сертификат"],
+                    questions: [
+                        {
+                            question: "Нужна ли мне ЭП или достаточно войти в ЛК через Госуслуги?",
+                            answer: "Начнем с того, что большинство сервисов Личного кабинета (ЛК) предназначены для юридических лиц (ЮЛ) и индивидуальных предпринимателей (ИП) (далее про ЮЛ и ИП говорим - организации).\nДля кого предназначен сервис и нужна ли для него ЭП, см. в разделе Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Nuzhna_EP&src=Help\" target=\"_blank\">Определите, требуется ли вам для работы электронная подпись</a>  (здесь пометка ЮЛ - означает ЮЛ или ИП, пометка ЭП - означает либо необходимость электронной подписи (ЭП), либо в ряде случаев достаточен вход через Госуслуги).\nДля работы с сервисами для организаций - в вашем ЛК обязательно должна быть подтверждена организация.\nПри этом:\n\n• если вы зарегистрировались в ЛК по электронной подписи (ЭП), то организация уже подтверждена и ЭП прикреплена в Профиле ЛК;\n•если вы зарегистрировались без использования ЭП (по логину/паролю), то необходимо подтвердить организацию.\n\n\nПодтвердить организацию можно двумя способами:\n• По ЭП. При этом ЭП должна быть выдана на сотрудника организации, т. е. в ЭП указан ИНН организации и СНИЛС сотрудника-владельца ЭП. \nВ результате: в вашем ЛК подтверждена организация и прикреплена ЭП в Профиле ЛК.\n• При входе в ЛК через Госуслуги (при условии, что в вашем аккаунте на Госуслугах указана организация, т. е. вы являетесь сотрудником организации и ваш аккаунт прикреплен к организации).\nВ результате: в вашем ЛК подтверждена организация и НЕ прикреплена ЭП.\n\nКакие рабочие возможности доступны в случае подтверждения организации:\n• По ЭП (ЭП прикреплена в ЛК).\nФункционал ЛК доступен в полном объеме (в т. ч. создание / редактирование / отправка в ТО всевозможных документов / отчетов / запросов с заверением ЭП; прием уведомлений от ТО с подтверждением ЭП их получения); получение информации по направленным в ТО запросам).\n• Через Госуслуги (ЭП не прикреплена в ЛК).\nВ сервисах ЛК доступен просмотр любых сведений / информации , которые поступают из ТО в автоматическом режиме, без запросов с вашей стороны из ЛК (для запросов ); а также создание, редактирование, сохранение отчетов и документов, НО при этом отправлять в их в ТО вы не сможете, т. к. для отправки требуется ЭП.\nНапример, вы сможете просматривать остатки на ЕЛС, информация о которых поступает в ЛК автоматически, но движение денежных средств вы не увидите, т. к. для получения этой информации необходимо отпарвить запрос в ТО.\nЭП в Профиле можно прикрепить в любой момент позднее, при необходимости, когда получите ЭП. Тогда вы сможете отправлять в ТО документы/отчеты/запросы с заверением их ЭП.\n\nЕсли вы решили подтвердить организацию через Госуслуги, см. раздел Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Podtverzhdenie_Gosuslugi&src=Help\" target=\"_blank\">Подтверждение организации при входе в личный кабинет через Госуслуги.</a>\nЕсли вы решили подтвердить организацию по ЭП, то:\n• сначала выполните все шаги/действия из раздел Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=EPServiceHelp&src=Help\" target=\"_blank\">Получение и установка ЭП</a>;\n• затем уже подтвердите организацию, см. раздел Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Podtverzhdenie_EP&src=Help\" target=\"_blank\">Подтверждение организации с помощью электронной подписи</a>.\nВсе о подтверждении организации см. в разделе Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Podtverzhdenie_org&src=Help\" target=\"_blank\">Подтверждение/добавление организации</a>"
+                        },
+                        {
+                            question: "Не устанавливается/не работает плагин для работы с ЭП",
+                            answer: "Если вы установили плагин Крипто-Про ЭЦП Browser Plug-in, но всё равно на сайте появляется сообщение с предложением его установки, выполните следующую последовательность действий:\n1. Перед новой установкой удалите плагин(ы), который вы устанавливали в прежних попытках и они не запускаются на нашем сайте (через Панель управления/Изменение или удаление программ).\n2. Почистите кэш.\n3. Скачайте и запустите плагин заново под правами администратора системы (компьютера).\n4. Перезагрузите компьютер сразу после установки."
+                        }
+                    ]
+                },
+                {
+                    id: "account",
+                    name: "Лицевой счёт",
+                    keywords: ["баланс", "платежи", "оплата", "история операций", "пополнение", "открыть счёт"],
+                    questions: [
+                        {
+                            question: "Как открыть лицевой счёт?",
+                            answer: "ЛС открывается автоматически при перечислении денежных средств в таможенные органы.\nПлатежи по ЛС вносятся на счет таможенного органа по коду «10000010» (поле 107 п/п).\n<a href=\"https://customs.gov.ru/uchastnikam-ved/uplata-tamozhennyx-i-inyx-platezhej/rekvizity-scheta-dlya-perechisleniy\" target=\"_blank\">Реквизиты счета для оплаты таможенных платежей.</a>\nПорядок открытия единого лицевого счета отражен в приказе ФТС России от 29.04.2019 № 727"
+                        },
+                        {
+                            question: "Как выгрузить Подтверждение уплаты таможенных пошлин, налогов и Отчет о расходовании денежных средств, внесенных в качестве авансовых платежей в Excel?",
+                            answer: "Откройте на просмотр полученный от ТО ответ. Нажмите кнопку Печать, после этого в открывшемся окне будет доступна кнопке XLS. \n\nК сведению! В Excel выгружается только табличная часть!\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=blobid1557231420799.gif\" style=\"max-width: 400px; margin-top: 10px;\">"
+                        }
+                    ]
+                },
+                {
+                    id: "pre-info",
+                    name: "Предварительное информирование",
+                    keywords: ["ПИ", "ДТ", "уведомление", "транзит", "декларирование", "журнал обмена", "предварительное информирование"],
+                    questions: [
+                        {
+                            question: "Как подать ПИ в объём ДТ?",
+                            answer: "В случае предварительного декларирования в ПИ указываются:\n• все обязательные поля, помеченные красной звёздочкой,\n• рег.номер ПТД\nна вкладке Сведения о товарной партии в Карточке товарной партии (см. изображение ниже)\n• и сведения для целей 01-14, если они отсутствуют в ПТД\nподробнее см.раздел Справки по заполнению ПИ по своему виду транспорта.\n\nСведения, указанные в предварительной таможенной декларации, при формировании предварительной информации повторно не представляются.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=01.png\" alt=\"Подача ПИ в объём ДТ\" style=\"max-width: 400px; margin-top: 10px;\">"
+                        },
+                        {
+                            question: "В каких случаях заполняется предварительное уведомление при перевозке товаров автомобильным транспортом?",
+                            answer: "При помещении прибывающих товаров и транспортных средств под таможенную процедуру таможенного транзита необходимо предоставлять предварительную информацию в виде:\n•Уведомления о транзите товаров (Транзитная декларация),\n• Уведомления о транзите товаров с использованием книжки МДП.\nЕсли прибывающие товары планируется помещать под другие таможенные процедуры, то необходимо предоставлять предварительную информацию в виде:\n• Уведомления о прибытии товаров, перевозимых автомобильным транспортом."
+                        },
+                        {
+                            question: "Почему отправленное предварительное уведомление находится в статусе «Черновик»?",
+                            answer: "Ознакомьтесь с результатом обработки запроса на регистрацию предварительной информации просмотрите сообщение об ошибке в Журнале обмена. Для этого:\n1. Откройте журнал по кнопке Открыть журнал обмена в списке уведомлений.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ПИ_список_ошибка_%20рег.jpg\" alt=\"Открыть журнал обмена\" style=\"max-width: 400px; margin-top: 10px;\"\n2. Откройте на просмотр сообщение об ошибке щелчком по строке сообщения в журнале.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ПИ_журнал_обмена.jpg\" alt=\"Просмотр сообщения об ошибке\" style=\"max-width: 400px; margin-top: 10px;\"\n3. Ознакомьтесь с описанием ошибки (ошибок).\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ПИ_сообщение_об_ошибке.jpg\" alt=\"Просмотр сообщения об ошибке\" style=\"max-width: 400px; margin-top: 10px;\"\n\nОтказ в регистрации предварительного уведомления с использованием книжки МДП может быть получен по причине «нарушения уникальности серии и номера книжки МДП»\n\nПо предварительной информация может быть получен отказ в регистрации, если были обнаружены ошибки при проведении форматно-логического контроля (ФЛК), т. е. одно или несколько введенных значений не найдены в соответствующих справочниках.\n\nПроверьте корректность заполнения этих полей и после их исправления повторно отправьте запрос на регистрацию уведомления."
+                        }
+                    ]
+                },
+                {
+                    id: "archive",
+                    name: "Электронный архив",
+                    keywords: ["документы", "архив", "скачать", "история", "поиск", "файл"],
+                    questions: [
+                        {
+                            question: "Почему при попытке привязать к описи документ из архива документ в архиве не найден, хотя в архив он добавлен?",
+                            answer: "Причиной является то, что вы создали только черновик документа в списке Документы и не добавили его в электронный архив, находящийся в таможенных органах. Добавление документа в архив ТО выполните по кнопке  в списке документов."
+                        },
+                        {
+                            question: "Как добавить изображение или файл pdf в архив?",
+                            answer: "Изображение добавляется в Электронный архив в виде документа «Бинарные данные».\n1. Добавьте новый документ «Бинарные данные» по кнопке «Добавить документ», последовательно выбирая пункты «Создать новый», «Таможенные документы», «Бинарные данные».\n2. При заполнении этого документа на вкладке «Тело документа» загрузите изображение по ссылке «Загрузить файл».\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=Binary.gif\" style=\"max-width: 400px; margin-top: 10px;\">"
+                        }
+                    ]
+                },
+                {
+                    id: "lk",
+                    name: "Личный кабинет",
+                    keywords: ["профиль", "настройки", "безопасность", "уведомления", "доступы"],
+                    questions: [
+                        {
+                            question: "Как в Личном кабинете \"стать\" Директором? (Сотрудником организации, имеющим право подписи без доверенности)",
+                            answer: "Если в выписке из ЕГРЮЛ в разделе \"Сведения о лице имеющем право подписи без доверенности действовать от имени юридического лица\" указана управляющая компания, см. раздел ниже\n<a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=FAQ_Leader_UK&src=Help\" target=\"_blank\">Как подтвердить полномочия?</a>\n\nПерейдите в Профиль организации или нажмите на наименование организации в верхней части экрана.\nВ Профиле организации отображается список всех сотрудников организации\n\nДля определения сотрудника, как Руководителя организации Участник ВЭД должен:\n1. Зарегистрироваться в ЛК.\n2. Иметь прикрепленную действующую ЭП на момент отправки доверенности (Организация должна быть подтверждена).\n3. Выйти из Личного кабинета и Зайти в ЛК с помощью ГОСУСЛУГ как физическое лицо для подтверждения статуса Директора (руководителя).\nВАЖНО! ИНН директора в ЕГРЮЛ (ЕГРИП) должен совпасть с ИНН сотрудника (физического лица, 12 знаков) из ГОСУСЛУГ.Нажмите кнопку \"Войти через ЕСИА\" на странице входа в Личный кабинет.\n\nОткроется окно ввода логина/пароля на сайте Госуслуги - введите данные.\n\nВас автоматически перенаправит в Личный кабинет - в выпадающем списке выберите профиль физ. лица\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=19.11-4.png\" style=\"max-width: 400px; margin-top: 10px;\">\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=Вход%20через%20ЕСИА%202-3.jpg\" style=\"max-width: 400px; margin-top: 10px;\">\nВ Профиле сотрудника отобразится ИНН физического лица. \nВАЖНО! ИНН директора в ЕГРЮЛ (ЕГРИП) должен совпасть с ИНН сотрудника (физического лица, 12 знаков) из ГОСУСЛУГ!\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=19.11-3.png\" style=\"max-width: 400px; margin-top: 10px;\">\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=Выписка%20из%20ЕГРЮЛ%20и%20Госуслуги.jpg\" style=\"max-width: 400px; margin-top: 10px;\">\n4. Выбрать способ входа в качестве сотрудника организации.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ВыборСпособаВхода.png\" style=\"max-width: 400px; margin-top: 10px;\">\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ВыборСпВходаСотрудник.png\" style=\"max-width: 400px; margin-top: 10px;\">\n5. И в разделе Профиль организации обновить сведения об организации (см. Справку: Обновление сведений об организации)\nВАЖНО! Сведения об организации можно обновить только 1 раз в сутки!\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=19.11.png\" style=\"max-width: 400px; margin-top: 10px;\">\nПосле того, как в организации будет определен Руководитель, в профиле сотрудника изменится его статус на \"Может подписывать документы\", который отображается только у директора.\nПосле получения указанного статуса, директор может выдать доверенность на совершение определенных действий своим сотрудникам в сервисе <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/#?view=Service&service=LetterOfAttorney\" target=\"_blank\">Доверенности на сотрудников</a>  (см. <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=LetterOfAttorney&src=Help\" target=\"_blank\">СПРАВКУ.</a> )."
+                        },
+                        {
+                            question: "Не могу войти в Личный кабинет по логину и паролю. Что делать?",
+                            answer: "НЕ получается войти в Личный кабинет. Причин этому может быть несколько:\n\n•Вы недавно зарегистрировались и впервые пытаетесь войти в Личный кабинет.\nДо попытки входа вы должны были:\n\n1. Получить письмо для завершения регистрации (на адрес почты, указанный при регистрации).\n2. Перейти по ссылке из полученного письма.\nЕсли вам не пришло письмо для завершения регистрации, см. ответ на вопрос <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#\" target=\"_blank\">Почему мне НЕ приходит письмо для завершения регистрации?</a>\n• Вы некорректно вводите логин и/или пароль.\nПроверьте:\n• раскладку клавиатуры (язык) - EN/RU;\n• режима по клавише CapsLock - заглавные/строчные буквы.\n\nВы давно не заходили в Личный кабинет и забыли пароль.\nВосстановите пароль. Для этого:\n1. Войдите в личный кабинет через Госуслуги или по электронной подписи.\n2. В профиле физического лица (или в профиле сотрудника) нажмите кнопку \"Сменить пароль\": <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Password_email&src=Help\" target=\"_blank\">Смена пароля.</a>"
+                        },
+                        {
+                            question: "При попытке войти в ЛК по ЭП ошибка: Указанный СНИЛС ХХХ-ХХХ-ХХХ ХХ не совпадает со СНИЛС учетной записи YYY-YYY-YYY YY (или ZZZZZ).",
+                            answer: "Сообщение об ошибке означает следующее:\n•во-первых, в системе НЕ найден Личный кабинет, в котором зафиксированный номер СНИЛС совпадает с номером СНИЛС в ЭП, выбранной для входа в ЛК,\n• во-вторых, в ЛК, найденном по адресу эл. почты, указанной в выбранной ЭП, номер СНИЛС не совпадает со СНИЛС в той же ЭП.\nПодробнее о СНИЛС в ЛК см. раздел Справки: <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Nomer_SNILS_v_Lichnom_kabinete&src=Help\" target=\"_blank\">Номер СНИЛС в Личном кабинете.</a>\nВ этом случае рекомендуем зарегистрировать новый ЛК, подтвердить в нем организацию по данной ЭП по кнопке \"Войти как организация\" и, соответственно, привязать при этом ЭП.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=войти%20как%20организация.png\" style=\"max-width: 400px; margin-top: 10px;\"> "
+                        }
+                    ]
+                },
+                {
+                    id: "customs-procedures",
+                    name: "Таможенные процедуры",
+                    keywords: ["таможенная проверка", "ДТ", "ГТД", "вывоз товара", "оформление"],
+                    questions: [
+                        {
+                            question: "При отправке документа в ТО появляется ошибка: \"Значение должно быть не больше 4404019 символов\"",
+                            answer: "Ошибка Значение должно быть не больше 4404019 символов может появиться при отправке в таможенные органы документа типа Бинарные данные.\n\nТакая ошибка означает, что загруженный в документ файл превышает допустимый размер (объем).\n\nДля типа документа Бинарные данные - размер вложенного файла должен быть НЕ более 3 Мб.\n\nЕсли размер файла более 3 Мб, то уменьшите его размер или разбейте документ на 2 (или более) части. В этом случае надо отправить два (или более) документа типа Бинарные данные, т.е. отдельно каждую часть.\n\nПри этом номера частей можно указать в названии документа, например: \"Название. Часть 1\" и \"Название. Часть 2\". "
+                        },
+                         {
+                            question: "Как отправить изменения в ДТ после выпуска товара?",
+                            answer: "Пожалуйста, подробнее см. <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Ed_KDT_after&src=Help\" target=\"_blank\">Внесение изменений в ДТ после принятия решения по товарам (выпуска.</a>)\n\nВажно! Кнопка <img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=blobid1557154800252.jpg\" style=\"max-width: 400px; margin-top: 10px;\"> нужна для обращения к таможенному испектору на изменение граф ДТ, которые заполняет сам инспектор!"
+                        },
+                         {
+                            question: "Можно ли запросить информацию о вывозе товара без номера ГТД?",
+                            answer: "Регистрационный номер ДТ является обязательным полем для запроса информации. Без номера ГТД запрос не отправится в таможенные органы, так как проверяется возможность предоставления информации о вывозе товаров: сверяется ИНН из ДТ и ИНН из электронной подписи."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Получаем параметр из URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(window.location.href);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Получаем URL предыдущей страницы
+        function getPreviousPageUrl() {
+            const referrer = getUrlParameter('referrer');
+            return referrer || 'glavnaya.html';
+        }
+
+        // Текущее состояние бота
+        const currentState = {
+            currentSection: null,
+            waitingForSupportQuestion: false
+        };
+
+        // Все вопросы для подсказок
+        const allQuestions = [];
+        faqData.sections.forEach(section => {
+            section.questions.forEach(q => allQuestions.push(q.question));
+        });
+
+        // Экранирование HTML
+        function escapeHtml(unsafe) {
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Форматирование ответа (исправленная версия)
+       function formatAnswer(answer) {
+            if (!answer) return '';
+
+            let answerObj = {};
+            if (typeof answer === 'string') {
+                answerObj.text = answer;
+            } else {
+                answerObj = answer;
+            }
+
+            let html = answerObj.text
+                .replace(/\n/g, '<br>')
+                // Исправление некорректных HTML-ссылок
+                .replace(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g, (match, url, text) => {
+                    const cleanUrl = url.replace(/__/g, '').trim();
+                    return `<a href="${decodeURIComponent(cleanUrl)}" target="_blank" class="answer-link">${text}</a>`;
+                })
+                // Обработка ссылок вида "текст:URL"
+                .replace(/([А-Яа-яЁёA-Za-z\s]+):(https?:\/\/[^\s;,.]+)/g,
+                    '<a href="$2" target="_blank" class="answer-link">$1</a>');
+
+            // Обработка изображений (jpg, png, gif)
+            html = html.replace(/<img[^>]+src="([^"]+)"[^>]*>/g, (match, src) => {
+                const decodedSrc = decodeURIComponent(src);
+                if (decodedSrc.match(/\.(jpg|png|gif)$/i)) {
+                    return `<img src="${decodedSrc}" class="answer-image" onerror="this.style.display='none'">`;
+                }
+                return '';
+            });
+
+            // Обработка обычных URL (не изображений)
+            html = html.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+                const decodedUrl = decodeURIComponent(url);
+                if (decodedUrl.match(/\.(jpg|png|gif)$/i)) {
+                    return url; // Пропускаем, так как это уже обработанное изображение
+                }
+                const displayText = decodedUrl.length > 50 ?
+                    decodedUrl.substring(0, 47) + '...' :
+                    decodedUrl;
+                return `<a href="${decodedUrl}" target="_blank" class="answer-link">${displayText}</a>`;
+            });
+
+            // Добавление кнопок навигации
+            if (answerObj.section) {
+                html += `<div class="options-container">
+                    <button class="option-btn" onclick="selectSection('${answerObj.section.id}')">
+                        Перейти в раздел "${escapeHtml(answerObj.section.name)}"
+                    </button>
+                    <button class="option-btn" onclick="showMainMenu()">
+                        Вернуться в главное меню
+                    </button>
+                    <button class="option-btn" onclick="window.location.href='${getPreviousPageUrl()}'">
+                        Вернуться на сайт
+                    </button>
+                </div>`;
+            }
+
+            return html;
+        }
+
+        // Показать приветственное сообщение (исправленная версия)
+        function showWelcomeMessage() {
+            const chatBox = document.getElementById('chat-box');
+            const sectionFromUrl = getUrlParameter('section');
+
+            chatBox.innerHTML = ''; // Очищаем чат перед показом приветствия
+
+            let welcomeMessage = "Здравствуйте! Меня зновут ЧаВоВЭд-бот. Я помогу вам найти информацию по часто задаваемым вопросам.";
+
+            if (sectionFromUrl) {
+                const section = faqData.sections.find(s => s.id === sectionFromUrl);
+                if (section) {
+                    currentState.currentSection = section;
+                    welcomeMessage += `\n\nВы сейчас в разделе «${section.name}». Вот список ключевых слов по этому разделу, которые помогут найти ответ на вопрос:`;
+                    chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${escapeHtml(welcomeMessage)}</div>`;
+                    showKeywords(section);
+                    return;
+                }
+            }
+
+            chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${escapeHtml(welcomeMessage)}</div>`;
+            showSections();
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Обработка нажатия клавиши
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                if (currentState.waitingForSupportQuestion) {
+                    sendToSupport();
+                } else {
+                    sendQuestion();
+                }
+            }
+        }
+
+        // Показать подсказки
+        function showSuggestions() {
+            const input = document.getElementById('user-input');
+            const suggestions = document.getElementById('suggestions');
+
+            if (input.value.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            const filtered = allQuestions.filter(q =>
+                q.toLowerCase().includes(input.value.toLowerCase())
+            );
+
+            if (filtered.length > 0) {
+                suggestions.innerHTML = filtered.map(q =>
+                    `<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(q)}')">${escapeHtml(q)}</div>`
+                ).join('');
+                suggestions.style.display = 'flex';
+            } else {
+                suggestions.style.display = 'none';
+            }
+        }
+
+        // Выбрать подсказку
+        function selectSuggestion(text) {
+            document.getElementById('user-input').value = text;
+            document.getElementById('suggestions').style.display = 'none';
+            sendQuestion();
+        }
+
+        // Показать ключевые слова
+        function showKeywords(section) {
+            const chatBox = document.getElementById('chat-box');
+            let keywordsHtml = '<div class="keywords-container">';
+
+            section.keywords.forEach(keyword => {
+                keywordsHtml += `<div class="keyword" onclick="searchByKeyword('${escapeHtml(keyword)}')">${escapeHtml(keyword)}</div>`;
+            });
+
+            keywordsHtml += '</div>';
+
+            chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>Вы сейчас в разделе «${escapeHtml(section.name)}». Вот список ключевых слов по этому разделу, которые помогут найти ответ на вопрос:${keywordsHtml}<div>Не нашли, что искали? Напишите свой вопрос или выберите другое ключевое слово.</div></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Показать разделы
+        function showSections() {
+            const chatBox = document.getElementById('chat-box');
+            let sectionsHtml = '<div class="sections-container">';
+
+            faqData.sections.forEach(section => {
+                sectionsHtml += `<button class="section-btn" onclick="selectSection('${section.id}')">${escapeHtml(section.name)}</button>`;
+            });
+
+            sectionsHtml += '</div>';
+
+            chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>Выберите раздел, по которому у Вас возник вопрос:${sectionsHtml}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Выбрать раздел
+        function selectSection(sectionId) {
+            const section = faqData.sections.find(s => s.id === sectionId);
+            if (section) {
+                currentState.currentSection = section;
+                showKeywords(section);
+            }
+        }
+
+        // Поиск по ключевому слову
+        function searchByKeyword(keyword) {
+            const chatBox = document.getElementById('chat-box');
+            const lowerKeyword = keyword.toLowerCase();
+            const matchedQuestions = [];
+
+            // Поиск в текущем разделе, если он выбран
+            const searchSections = currentState.currentSection ?
+                [currentState.currentSection] :
+                faqData.sections;
+
+            searchSections.forEach(section => {
+                section.questions.forEach(question => {
+                    const questionLower = question.question.toLowerCase();
+                    const keywordsLower = section.keywords.map(k => k.toLowerCase());
+
+                    if (questionLower.includes(lowerKeyword) ||
+                        keywordsLower.some(k => k.includes(lowerKeyword))) {
+                        matchedQuestions.push({
+                            question: question.question,
+                            text: question.answer,
+                            section: section
+                        });
+                    }
+                });
+            });
+
+            // Показать результаты
+            if (matchedQuestions.length === 0) {
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    По ключевому слову "${escapeHtml(keyword)}" вопросов не найдено.
+                    <div class="options-container">
+                        <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                        <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                    </div>
+                </div>`;
+            } else if (matchedQuestions.length === 1) {
+                showAnswer(matchedQuestions[0]);
+            } else {
+                let questionsHtml = '<div class="questions-list">';
+                matchedQuestions.forEach(item => {
+                    questionsHtml += `<div class="question-item"
+                        onclick="showAnswer(${escapeHtml(JSON.stringify(item))})">
+                        ${escapeHtml(item.question)}
+                    </div>`;
+                });
+                questionsHtml += '</div>';
+
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Найдено ${matchedQuestions.length} вопросов по ключевому слову "${escapeHtml(keyword)}":
+                    ${questionsHtml}
+                </div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Отправить вопрос
+        function sendQuestion() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const question = input.value.trim();
+
+            if (question === '') return;
+
+            chatBox.innerHTML += `<div class="user-message">${escapeHtml(question)}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = '';
+            document.getElementById('suggestions').style.display = 'none';
+
+            const loadingId = 'loading-' + Date.now();
+            chatBox.innerHTML += `<div id="${loadingId}" class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div><span class="loading-dots">Ищу ответ</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            setTimeout(() => {
+                document.getElementById(loadingId).remove();
+                let answer = null;
+                const lowerQuestion = question.toLowerCase();
+
+                // Поиск в текущем разделе, если он выбран
+                if (currentState.currentSection) {
+                    for (const item of currentState.currentSection.questions) {
+                        if (item.question.toLowerCase().includes(lowerQuestion) ||
+                            lowerQuestion.includes(item.question.toLowerCase())) {
+                            answer = {
+                                text: item.answer,
+                                section: currentState.currentSection
+                            };
+                            break;
+                        }
+                    }
+                }
+
+                // Если в текущем разделе не нашли, ищем во всех разделах
+                if (!answer) {
+                    for (const section of faqData.sections) {
+                        for (const item of section.questions) {
+                            if (item.question.toLowerCase().includes(lowerQuestion) ||
+                                lowerQuestion.includes(item.question.toLowerCase())) {
+                                answer = {
+                                    text: item.answer,
+                                    section: section
+                                };
+                                break;
+                            }
+                        }
+                        if (answer) break;
+                    }
+                }
+
+                if (answer) {
+                    const formattedAnswer = formatAnswer(answer);
+                    chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${formattedAnswer}</div>`;
+                } else {
+                    // Ответ не найден
+                    chatBox.innerHTML += `<div class="bot-message">
+                        <div class="bot-header">Робот ЧаВоВЭД</div>
+                        Извините, я не нашёл информации по Вашему запросу.
+                        <div class="options-container">
+                            <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                            <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                        </div>
+                    </div>`;
+                }
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000 + Math.random() * 2000);
+        }
+
+        // Подготовка запроса в поддержку
+        function prepareSupportRequest() {
+            currentState.waitingForSupportQuestion = true;
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Давайте составим обращение в службу поддержки. Напишите ниже Ваш вопрос, а я направлю его специалистам.
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Отправить в поддержку
+        function sendToSupport() {
+            const input = document.getElementById('user-input');
+            const question = input.value.trim();
+            const chatBox = document.getElementById('chat-box');
+
+            if (question === '') return;
+
+            chatBox.innerHTML += `<div class="user-message">${escapeHtml(question)}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = '';
+
+            currentState.waitingForSupportQuestion = false;
+
+            // Генерируем случайный номер запроса
+            const requestId = 'A/' + Math.floor(100000000 + Math.random() * 900000000).toString().substring(0, 9);
+
+            // Показываем сообщение с номером запроса
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Отлично! Передал Ваш запрос в службу поддержки под номером ${requestId}. Ответ придёт в Личный кабинет.
+                <div class="options-container">
+                    <button class="option-btn" onclick="window.location.href='${getPreviousPageUrl()}'">Вернуться на сайт</button>
+                </div>
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Показать главное меню
+        function showMainMenu() {
+            currentState.currentSection = null;
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Здравствуйте! Меня зовут ЧаВоВЭд-бот. Я помогу вам найти информацию по часто задаваемым вопросам.
+            </div>`;
+            showSections();
+        }
+
+        // Показать ответ
+        function showAnswer(item) {
+            if (typeof item === 'string') {
+                try {
+                    item = JSON.parse(item);
+                } catch (e) {
+                    console.error('Error parsing item:', e);
+                    return;
+                }
+            }
+
+            const chatBox = document.getElementById('chat-box');
+            currentState.currentSection = item.section;
+            const formattedAnswer = formatAnswer({
+                text: item.text || item.answer,
+                section: item.section
+            });
+            chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${formattedAnswer}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Запускаем приветственное сообщение при загрузке страницы
+        window.onload = showWelcomeMessage;
+    </script>
+</body>
+</html>

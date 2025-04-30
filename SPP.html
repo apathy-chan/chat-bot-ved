@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обращения в техподдержку</title>
+    <style>
+        body { margin: 0; background: #f8f8f8; font-family: Arial, sans-serif; }
+        .header {
+            background: #20603d;
+            color: #fff;
+            padding: 24px 32px 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header img { height: 40px; margin-right: 16px; }
+        .header-title { font-size: 2em; font-weight: bold; }
+        .tabs {
+            margin: 24px 0 0 32px;
+        }
+        .tab {
+            background: #e6e6e6;
+            border: none;
+            padding: 8px 18px;
+            margin-right: 6px;
+            border-radius: 4px 4px 0 0;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .tab.active {
+            background: #20603d;
+            color: #fff;
+            font-weight: bold;
+        }
+        .requests-list {
+            background: #fff;
+            margin: 0 32px 32px 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #0001;
+            padding: 0;
+        }
+        .request-item {
+            border-bottom: 1px solid #eee;
+            padding: 18px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .request-item:last-child { border-bottom: none; }
+        .request-info { max-width: 75%; }
+        .request-date { color: #999; font-size: 0.95em; }
+        .request-id { color: #009900; font-weight: bold; }
+        .request-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            font-weight: bold;
+            margin-left: 12px;
+        }
+        .status-new { background: #fffbe6; color: #b38900; border: 1px solid #ffe58f; }
+        .status-close { background: #e6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+        .answer-btn {
+            background: #20603d;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 18px;
+            margin-left: 16px;
+            cursor: pointer;
+        }
+        .answer-form { display: none; margin-top: 10px; }
+        .answer-form textarea { width: 100%; min-height: 60px; }
+        .answer-form button { margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='Logo.png') }}" alt="Логотип">
+            <span class="header-title">Обращения в техподдержку</span>
+        </div>
+        <span></span>
+    </div>
+    <div style="margin-left:32px; color:#20603d; margin-top:8px;">
+        Справочные материалы о работе с обращениями в тех.поддержку
+    </div>
+    <div class="tabs">
+        <button class="tab active" data-status="all">Все</button>
+        <button class="tab" data-status="Новое обращение">Новые</button>
+        <button class="tab" data-status="В работе">В работе</button>
+        <button class="tab" data-status="Запрос закрытия">Завершенные</button>
+    </div>
+    <div class="requests-list" id="requests-list">
+        <!-- Список обращений будет подгружаться через JS -->
+    </div>
+
+    <script>
+        let requests = [];
+        let currentStatus = 'all';
+
+        function renderRequests() {
+            const list = document.getElementById('requests-list');
+            let filtered = requests;
+            if (currentStatus !== 'all') {
+                filtered = requests.filter(r => r.status === currentStatus);
+            }
+            list.innerHTML = '';
+            if (!filtered.length) {
+                list.innerHTML = '<div style="padding:24px;color:#888;">Нет обращений</div>';
+                return;
+            }
+            filtered.forEach(req => {
+                let statusClass = '';
+                let statusText = '';
+                if (req.status === 'Новое обращение') {
+                    statusClass = 'status-new';
+                    statusText = 'Новое обращение';
+                } else if (req.status === 'Запрос закрытия') {
+                    statusClass = 'status-close';
+                    statusText = 'Запрос закрытия';
+                } else if (req.status === 'В работе') {
+                    statusClass = 'status-new';
+                    statusText = 'В работе';
+                }
+                list.innerHTML += `
+                <div class="request-item" data-id="${req.id}">
+                    <div class="request-info">
+                        <div class="request-date">${req.date}
+                            <span class="request-id">Рег. номер: ${req.id}</span>
+                        </div>
+                        <div>${req.text}</div>
+                        ${req.response ? `<div style="margin-top:8px;color:#20603d;"><b>Ответ:</b> ${req.response}</div>` : ''}
+                        <form class="answer-form">
+                            <textarea placeholder="Введите ответ..."></textarea>
+                            <button type="submit" class="answer-btn">Отправить ответ</button>
+                        </form>
+                    </div>
+                    <div>
+                        <span class="request-status ${statusClass}">${statusText}</span>
+                        ${!req.response ? `<button class="answer-btn" onclick="showAnswerForm('${req.id}')">Ответить</button>` : ''}
+                    </div>
+                </div>`;
+            });
+            addFormListeners();
+        }
+
+        function addFormListeners() {
+            document.querySelectorAll('.answer-form').forEach(form => {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    const parent = form.closest('.request-item');
+                    const id = parent.dataset.id;
+                    const textarea = form.querySelector('textarea');
+                    const answer = textarea.value.trim();
+                    if (!answer) return;
+                    fetch('/update_request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id, status: 'Запрос закрытия', response: answer })
+                    }).then(r => r.json()).then(data => {
+                        if (data.success) {
+                            // Отправляем уведомление пользователю (имитация)
+                            fetch('/notify_user', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: id, message: answer })
+                            });
+                            loadRequests();
+                        }
+                    });
+                };
+            });
+        }
+
+        function showAnswerForm(id) {
+            document.querySelectorAll('.answer-form').forEach(f => f.style.display = 'none');
+            const item = document.querySelector(`.request-item[data-id="${id}"] .answer-form`);
+            if (item) item.style.display = 'block';
+        }
+
+        function loadRequests() {
+            fetch('/get_requests').then(r => r.json()).then(data => {
+                requests = data.requests;
+                renderRequests();
+            });
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentStatus = tab.dataset.status;
+                renderRequests();
+            };
+        });
+
+        loadRequests();
+    </script>
+</body>
+</html>
