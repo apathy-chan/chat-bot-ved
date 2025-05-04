@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ЧаВо бот</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 10px;
+            background-color: #52b788;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        #chat-box {
+            height: 400px;
+            overflow-y: scroll;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .user-message {
+            background-color: #fefae0;
+            padding: 12px 15px;
+            border-radius: 18px 18px 0 18px;
+            align-self: flex-end;
+            max-width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .bot-message {
+            background-color: #fefae0;
+            padding: 12px 15px;
+            border-radius: 18px 18px 18px 0;
+            align-self: flex-start;
+            max-width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .bot-header {
+            font-weight: bold;
+            color: #2d6a4f;
+            margin-bottom: 5px;
+        }
+        .ai-indicator {
+            font-style: italic;
+            color: #2d6a4f;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        #user-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        #user-input:focus {
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .input-container {
+            position: relative;
+        }
+        #suggestions {
+            position: absolute;
+            bottom: 100%;
+            width: 100%;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background: #f5f5f5;
+        }
+        .welcome-message {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .answer-image {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block;
+        }
+        .answer-link {
+            color: #2d6a4f;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .answer-link:hover {
+            color: #1b4332;
+            text-decoration: none;
+        }
+        .keywords-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .keyword {
+            background-color: #d8f3dc;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .keyword:hover {
+            background-color: #b7e4c7;
+        }
+        .section-btn {
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .section-btn:hover {
+            background-color: #1b4332;
+        }
+        .sections-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .support-btn {
+            background-color: #d00000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .support-btn:hover {
+            background-color: #9d0208;
+        }
+        .options-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .option-btn {
+            background-color: #40916c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .option-btn:hover {
+            background-color: #2d6a4f;
+        }
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .question-item {
+            background-color: #d8f3dc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .question-item:hover {
+            background-color: #b7e4c7;
+        }
+        .loading-dots::after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+        .return-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .return-btn:hover {
+            background-color: #5a6268;
+        }
+        .answer-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .follow-up-message {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .follow-up-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .error-message {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            #chat-box {
+                height: 60vh;
+            }
+            .user-message, .bot-message {
+                max-width: 90%;
+            }
+            .options-container {
+                flex-direction: column;
+            }
+            .option-btn, .support-btn, .return-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ЧаВо бот</h1>
+    <div class="welcome-message">Виртуальный ассистент по всем часто задаваемым вопросам с портала «Личный кабинет участника ВЭД ФТС России»</div>
+
+    <div id="chat-box"></div>
+
+    <div class="input-container">
+        <div id="suggestions"></div>
+        <input type="text" id="user-input" placeholder="Введите запрос..." onkeypress="handleKeyPress(event)" oninput="showSuggestions()">
+    </div>
+
+    <script>
+        // FAQ data for client-side operations
+        const faqData = {
+            sections: [
+                {
+                    id: "signature",
+                    name: "Работа с электронной подписью",
+                    keywords: ["эп", "электронная подпись", "криптопро", "плагин", "сертификат"],
+                    questions: [
+                        {
+                            question: "Нужна ли мне ЭП или достаточно войти в ЛК через Госуслуги?",
+                            answer: { text: "Большинство сервисов Личного кабинета (ЛК) предназначены для юридических лиц (ЮЛ) и индивидуальных предпринимателей (ИП) (далее — организации).\nДля кого предназначен сервис и нужна ли для него ЭП, см. в разделе Справки <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Nuzhna_EP&src=Help\" target=\"_blank\">Определите, требуется ли вам для работы электронная подпись</a>." }
+                        },
+                        {
+                            question: "Не устанавливается/не работает плагин для работы с ЭП",
+                            answer: { text: "Если вы установили плагин Крипто-Про ЭЦП Browser Plug-in, но всё равно на сайте появляется сообщение с предложением его установки, выполните следующую последовательность действий:\n1. Перед новой установкой удалите плагин(ы), который вы устанавливали в прежних попытках и они не запускаются на нашем сайте.\n2. Почистите кэш.\n3. Скачайте и запустите плагин заново под правами администратора системы.\n4. Перезагрузите компьютер сразу после установки." }
+                        }
+                    ]
+                },
+                {
+                    id: "account",
+                    name: "Лицевой счёт",
+                    keywords: ["баланс", "платежи", "оплата", "история операций", "пополнение", "открыть счёт"],
+                    questions: [
+                        {
+                            question: "Как открыть лицевой счёт?",
+                            answer: { text: "ЛС открывается автоматически при перечислении денежных средств в таможенные органы.\nПлатежи по ЛС вносятся на счет таможенного органа по коду «10000010» (поле 107 п/п).\n<a href=\"https://customs.gov.ru/uchastnikam-ved/u prevenzione-tamozhennyx-i-inyx-platezhej/rekvizity-scheta-dlya-perechisleniy\" target=\"_blank\">Реквизиты счета для оплаты таможенных платежей</a>." }
+                        },
+                        {
+                            question: "Как выгрузить Подтверждение уплаты таможенных пошлин в Excel?",
+                            answer: { text: "Откройте на просмотр полученный от ТО ответ. Нажмите кнопку Печать, после этого в открывшемся окне будет доступна кнопка XLS.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=blobid1557231420799.gif\" class=\"answer-image\">" }
+                        }
+                    ]
+                },
+                {
+                    id: "pre-info",
+                    name: "Предварительное информирование",
+                    keywords: ["ПИ", "ДТ", "уведомление", "транзит", "декларирование", "журнал обмена"],
+                    questions: [
+                        {
+                            question: "Как подать ПИ в объём ДТ?",
+                            answer: { text: "В случае предварительного декларирования в ПИ указываются:\n• все обязательные поля, помеченные красной звёздочкой,\n• рег.номер ПТД\nна вкладке Сведения о товарной партии в Карточке товарной партии\n• и сведения для целей 01-14, если они отсутствуют в ПТД\nподробнее см. раздел Справки по заполнению ПИ по своему виду транспорта.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=01.png\" class=\"answer-image\" alt=\"Подача ПИ в объём ДТ\">" }
+                        },
+                        {
+                            question: "Почему отправленное предварительное уведомление находится в статусе «Черновик»?",
+                            answer: { text: "Ознакомьтесь с результатом обработки запроса на регистрацию предварительной информации, просмотрите сообщение об ошибке в Журнале обмена.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=ПИ_журнал_обмена.jpg\" class=\"answer-image\" alt=\"Просмотр сообщения об ошибке\">" }
+                        }
+                    ]
+                },
+                {
+                    id: "archive",
+                    name: "Электронный архив",
+                    keywords: ["документы", "архив", "скачать", "история", "поиск", "файл"],
+                    questions: [
+                        {
+                            question: "Почему при попытке привязать к описи документ из архива документ в архиве не найден?",
+                            answer: { text: "Причиной является то, что вы создали только черновик документа в списке Документы и не добавили его в электронный архив, находящийся в таможенных органах." }
+                        },
+                        {
+                            question: "Как добавить изображение или файл pdf в архив?",
+                            answer: { text: "Изображение добавляется в Электронный архив в виде документа «Бинарные данные».\n1. Добавьте новый документ «Бинарные данные» по кнопке «Добавить документ MBS».\n2. При заполнении этого документа на вкладке «Тело документа» загрузите изображение по ссылке «Загрузить файл».\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=Binary.gif\" class=\"answer-image\">" }
+                        }
+                    ]
+                },
+                {
+                    id: "lk",
+                    name: "Личный кабинет",
+                    keywords: ["профиль", "настройки", "безопасность", "уведомления", "доступы"],
+                    questions: [
+                        {
+                            question: "Как в Личном кабинете \"стать\" Директором?",
+                            answer: { text: "Перейдите в Профиль организации или нажмите на наименование организации в верхней части экрана.\nДля определения сотрудника как Руководителя организации Участник ВЭД должен:\n1. Зарегистрироваться в ЛК.\n2. Иметь прикрепленную действующую ЭП.\n3. Выйти из ЛК и зайти через Госуслуги как физическое лицо.\n<img src=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Service/GetFile?src=19.11-4.png\" class=\"answer-image\">" }
+                        },
+                        {
+                            question: "Не могу войти в Личный кабинет по логину и паролю. Что делать?",
+                            answer: { text: "Не получается войти в Личный кабинет. Проверьте:\n• раскладку клавиатуры (язык) — EN/RU;\n• режим по клавише CapsLock — заглавные/строчные буквы.\nВосстановите пароль: <a href=\"https://edata.customs.ru/FtsPersonalCabinetWeb2017/Help/#?topic=Password_email&src=Help\" target=\"_blank\">Смена пароля</a>." }
+                        }
+                    ]
+                },
+                {
+                    id: "customs-procedures",
+                    name: "Таможенные процедуры",
+                    keywords: ["таможенная проверка", "ДТ", "ГТД", "вывоз товара", "оформление"],
+                    questions: [
+                        {
+                            question: "При отправке документа в ТО появляется ошибка: \"Значение должно быть не больше 4404019 символов\"",
+                            answer: { text: "Ошибка означает, что загруженный в документ файл превышает допустимый размер (3 Мб). Уменьшите размер файла или разбейте документ на части." }
+                        },
+                        {
+                            question: "Можно ли запросить информацию о вывозе товара без номера ГТД?",
+                            answer: { text: "Регистрационный номер ДТ является обязательным полем для запроса информации. Без номера ГТД запрос не отправится." }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Current state
+        const currentState = {
+            currentSection: null,
+            waitingForSupportQuestion: false,
+            pendingRequestId: null,
+            pollingAttempts: 0,
+            maxPollingAttempts: 60 // Limit polling to ~5 minutes (60 * 5s)
+        };
+
+        // All questions for suggestions
+        const allQuestions = [];
+        faqData.sections.forEach(section => {
+            section.questions.forEach(q => allQuestions.push(q.question));
+        });
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Форматирование ответа
+        function formatAnswer(answer) {
+            if (!answer) return '';
+
+            let answerObj = {};
+            if (typeof answer === 'string') {
+                answerObj.text = answer;
+            } else {
+                answerObj = answer;
+            }
+
+            // Обработка текста ответа
+            let html = '<div class="answer-text">' +
+                answerObj.text
+                    .replace(/\n\n/g, '<br><br>')  // Заменяем двойные переносы на абзацы
+                    .replace(/\n/g, '<br>')       // Одиночные переносы на разрывы строк
+                    .replace(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g, (match, url, text) => {
+                        return `<a href="${url}" target="_blank" class="answer-link">${text}</a>`;
+                    }) +
+                '</div>';
+
+            // Обработка изображений
+            html = html.replace(/<img[^>]+src="([^"]+)"[^>]*>/g, (match, src) => {
+                return `<img src="${src}" class="answer-image">`;
+            });
+
+            return html;
+        }
+
+        // Show final question
+        function showFinalQuestion() {
+            const chatBox = document.getElementById('chat-box');
+            setTimeout(() => {
+                chatBox.innerHTML += `<div class="bot-message follow-up-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Остались еще вопросы?
+                    <div class="follow-up-options">
+                        <button class="option-btn" onclick="handleMoreQuestions(true)">Да</button>
+                        <button class="option-btn" onclick="handleMoreQuestions(false)">Нет</button>
+                    </div>
+                </div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
+        }
+
+        // Handle more questions
+        function handleMoreQuestions(hasMore) {
+            const chatBox = document.getElementById('chat-box');
+            if (hasMore) {
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Возможно, по Вашему вопросу найдется информация в другом разделе
+                    <div class="options-container">
+                        <button class="option-btn" onclick="showMainMenu()">Перейти в главное меню</button>
+                        ${currentState.currentSection ? `<button class="option-btn" onclick="selectSection('${currentState.currentSection.id}')">Остаться в этом разделе</button>` : ''}
+                    </div>
+                </div>`;
+            } else {
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Спасибо за обращение! Вы всегда можете вернуться, если у вас появятся новые вопросы.
+                    <div class="options-container">
+                        <button class="option-btn" onclick="window.location.href='${getPreviousPageUrl()}'">Вернуться на сайт</button>
+                    </div>
+                </div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Get URL parameter
+        function getUrlParameter(name) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(window.location.href);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Get previous page URL
+        function getPreviousPageUrl() {
+            const referrer = getUrlParameter('referrer');
+            return referrer || 'glavnaya.html';
+        }
+
+        // Show welcome message
+        function showWelcomeMessage() {
+            const chatBox = document.getElementById('chat-box');
+            const sectionFromUrl = getUrlParameter('section');
+            chatBox.innerHTML = '';
+            let welcomeMessage = "Здравствуйте! Меня зовут ЧаВоВЭД-бот. Я помогу вам найти информацию по часто задаваемым вопросам.";
+            if (sectionFromUrl) {
+                const section = faqData.sections.find(s => s.id === sectionFromUrl);
+                if (section) {
+                    currentState.currentSection = section;
+                    welcomeMessage += `\n\nВы сейчас в разделе «${section.name}». Вот список ключевых слов по этому разделу, которые помогут найти ответ на вопрос:`;
+                    chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${escapeHtml(welcomeMessage)}</div>`;
+                    showKeywords(section);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    startPollingNotifications();
+                    return;
+                }
+            }
+            chatBox.innerHTML += `<div class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div>${escapeHtml(welcomeMessage)}</div>`;
+            showSections();
+            chatBox.scrollTop = chatBox.scrollHeight;
+            startPollingNotifications();
+        }
+
+        // Handle key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                if (currentState.waitingForSupportQuestion) {
+                    sendToSupport();
+                } else {
+                    sendQuestion();
+                }
+            }
+        }
+
+        // Show suggestions
+        function showSuggestions() {
+            const input = document.getElementById('user-input');
+            const suggestions = document.getElementById('suggestions');
+            if (input.value.trim().length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            const filtered = allQuestions.filter(q =>
+                q.toLowerCase().includes(input.value.toLowerCase())
+            ).slice(0, 5);
+            if (filtered.length > 0) {
+                suggestions.innerHTML = filtered.map(q =>
+                    `<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(q)}')">${escapeHtml(q)}</div>`
+                ).join('');
+                suggestions.style.display = 'flex';
+            } else {
+                suggestions.style.display = 'none';
+            }
+        }
+
+        // Select suggestion
+        function selectSuggestion(text) {
+            document.getElementById('user-input').value = text;
+            document.getElementById('suggestions').style.display = 'none';
+            sendQuestion();
+        }
+
+        // Show keywords
+        function showKeywords(section) {
+            const chatBox = document.getElementById('chat-box');
+            let keywordsHtml = '<div class="keywords-container">';
+            section.keywords.forEach(keyword => {
+                keywordsHtml += `<div class="keyword" onclick="searchByKeyword('${escapeHtml(keyword)}')">${escapeHtml(keyword)}</div>`;
+            });
+            keywordsHtml += '</div>';
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Вы сейчас в разделе «${escapeHtml(section.name)}». Вот список ключевых слов по этому разделу, которые помогут найти ответ на вопрос:
+                ${keywordsHtml}
+                <div>Не нашли, что искали? Напишите свой вопрос или выберите другое ключевое слово.</div>
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Show sections
+        function showSections() {
+            const chatBox = document.getElementById('chat-box');
+            let sectionsHtml = '<div class="sections-container">';
+            faqData.sections.forEach(section => {
+                sectionsHtml += `<button class="section-btn" onclick="selectSection('${section.id}')">${escapeHtml(section.name)}</button>`;
+            });
+            sectionsHtml += '</div>';
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Выберите раздел, по которому у Вас возник вопрос:
+                ${sectionsHtml}
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Select section
+        function selectSection(sectionId) {
+            const section = faqData.sections.find(s => s.id === sectionId);
+            if (section) {
+                currentState.currentSection = section;
+                showKeywords(section);
+            }
+        }
+
+        // Show main menu
+        function showMainMenu() {
+            currentState.currentSection = null;
+            showSections();
+        }
+
+        // Search by keyword
+        function searchByKeyword(keyword) {
+            const chatBox = document.getElementById('chat-box');
+            const lowerKeyword = keyword.toLowerCase();
+            const matchedQuestions = [];
+            const searchSections = currentState.currentSection ? [currentState.currentSection] : faqData.sections;
+            searchSections.forEach(section => {
+                section.questions.forEach(question => {
+                    const questionLower = question.question.toLowerCase();
+                    const keywordsLower = section.keywords.map(k => k.toLowerCase());
+                    if (questionLower.includes(lowerKeyword) || keywordsLower.some(k => k.includes(lowerKeyword))) {
+                        matchedQuestions.push({
+                            question: question.question,
+                            text: question.answer,
+                            section: section
+                        });
+                    }
+                });
+            });
+            if (matchedQuestions.length === 0) {
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Извините, не могу найти ответ в базе знаний.
+                    <div class="options-container">
+                        <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                        <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                    </div>
+                </div>`;
+                showFinalQuestion();
+            } else if (matchedQuestions.length === 1) {
+                showAnswer(matchedQuestions[0]);
+            } else {
+                let questionsHtml = '<div class="questions-list">';
+                matchedQuestions.forEach(item => {
+                    questionsHtml += `<div class="question-item" onclick="showAnswer(${JSON.stringify(item).replace(/"/g, '&quot;')})">${escapeHtml(item.question)}</div>`;
+                });
+                questionsHtml += '</div>';
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Найдено ${matchedQuestions.length} вопросов по ключевому слову "${escapeHtml(keyword)}":
+                    ${questionsHtml}
+                </div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // Show answer
+        function showAnswer(item) {
+            const chatBox = document.getElementById('chat-box');
+            const sectionName = item.section ? item.section.name : 'Общий раздел';
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                ${formatAnswer(item.text)}
+                <div class="ai-indicator">Ответ из раздела: ${escapeHtml(sectionName)}</div>
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            showFinalQuestion();
+        }
+
+        // Check server availability
+        async function checkServerAvailability() {
+            try {
+                const response = await fetch('/ping', { method: 'GET' });
+                return response.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        // Send question to server
+        async function sendQuestion() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const question = input.value.trim();
+            if (question === '') return;
+            chatBox.innerHTML += `<div class="user-message">${escapeHtml(question)}</div>`;
+            input.value = '';
+            document.getElementById('suggestions').style.display = 'none';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            const loadingId = 'loading-' + Date.now();
+            chatBox.innerHTML += `<div id="${loadingId}" class="bot-message"><div class="bot-header">Робот ЧаВоВЭД</div><span class="loading-dots">Ищу ответ</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const isServerAvailable = await checkServerAvailability();
+            if (!isServerAvailable) {
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Извините, не могу найти ответ в базе знаний.
+                    <div class="options-container">
+                        <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                        <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                    </div>
+                </div>`;
+                showFinalQuestion();
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('question', question);
+                if (currentState.currentSection) {
+                    formData.append('current_section', currentState.currentSection.id);
+                }
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+                if (data.answer && data.source !== 'no_match' && data.source !== 'error') {
+                    const answerItem = {
+                        text: data.answer,
+                        section: faqData.sections.find(s => s.id === data.section) || currentState.currentSection
+                    };
+                    showAnswer(answerItem);
+                } else {
+                    chatBox.innerHTML += `<div class="bot-message">
+                        <div class="bot-header">Робот ЧаВоВЭД</div>
+                        Извините, не могу найти ответ в базе знаний.
+                        <div class="options-container">
+                            <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                            <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                        </div>
+                    </div>`;
+                    showFinalQuestion();
+                }
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Извините, не могу найти ответ в базе знаний.
+                    <div class="options-container">
+                        <button class="option-btn" onclick="showSections()">Выбрать другой раздел</button>
+                        <button class="support-btn" onclick="prepareSupportRequest()">Обратиться в поддержку</button>
+                    </div>
+                </div>`;
+                showFinalQuestion();
+            }
+        }
+
+        // Prepare support request
+        function prepareSupportRequest() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Давайте составим обращение в службу поддержки. Напишите ниже Ваш вопрос, а я направлю его специалистам.
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            currentState.waitingForSupportQuestion = true;
+        }
+
+        // Send to support
+        async function sendToSupport() {
+            const input = document.getElementById('user-input');
+            const question = input.value.trim();
+            const chatBox = document.getElementById('chat-box');
+            if (question === '') {
+                chatBox.innerHTML += `<div class="bot-message">
+                    <div class="bot-header">Робот ЧаВоВЭД</div>
+                    Пожалуйста, введите вопрос для службы поддержки.
+                </div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                return;
+            }
+
+            chatBox.innerHTML += `<div class="user-message">${escapeHtml(question)}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = '';
+            currentState.waitingForSupportQuestion = false;
+            currentState.pollingAttempts = 0;
+
+            // Показываем сообщение об успешной отправке сразу
+            chatBox.innerHTML += `<div class="bot-message">
+                <div class="bot-header">Робот ЧаВоВЭД</div>
+                Ваш запрос принят в обработку. Ответ придёт в Личный кабинет.
+                <div class="options-container">
+                    <button class="option-btn" onclick="window.location.href='lk.html'">Перейти в Личный кабинет</button>
+                </div>
+            </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Пытаемся отправить запрос на сервер в фоне
+            try {
+                const response = await fetch('/add_request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: question })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        currentState.pendingRequestId = data.request.id;
+                        // Обновляем сообщение с номером запроса
+                        const lastBotMessage = chatBox.lastElementChild;
+                        if (lastBotMessage && lastBotMessage.classList.contains('bot-message')) {
+                            lastBotMessage.innerHTML = `
+                                <div class="bot-header">Робот ЧаВоВЭД</div>
+                                Отлично! Передал Ваш запрос в службу поддержки под номером "${escapeHtml(data.request.id)}". Ответ придёт в Личный кабинет.
+                                <div class="options-container">
+                                    <button class="option-btn" onclick="window.location.href='lk.html'">Перейти в Личный кабинет</button>
+                                </div>`;
+                        }
+                        startPollingNotifications();
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending support request:', error);
+                // Не показываем ошибку пользователю, так как уже сообщили об успешной отправке
+            }
+        }
+
+        // Restart chat
+        function restartChat() {
+            currentState.currentSection = null;
+            currentState.pendingRequestId = null;
+            currentState.pollingAttempts = 0;
+            showWelcomeMessage();
+        }
+
+        // Poll notifications
+        function startPollingNotifications() {
+            const checkNotification = async () => {
+                if (currentState.pollingAttempts >= currentState.maxPollingAttempts) {
+                    const chatBox = document.getElementById('chat-box');
+                    chatBox.innerHTML += `<div class="bot-message">
+                        <div class="bot-header">Робот ЧаВоВЭД</div>
+                        Время ожидания ответа истекло. Пожалуйста, проверьте Личный кабинет позже.
+                        <div class="options-container">
+                            <button class="option-btn" onclick="showMainMenu()">Задать новый вопрос</button>
+                            <button class="option-btn" onclick="window.location.href='lk.html'">Перейти в Личный кабинет</button>
+                        </div>
+                    </div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    currentState.pendingRequestId = null;
+                    return;
+                }
+                currentState.pollingAttempts++;
+                try {
+                    const response = await fetch('/get_requests');
+                    const data = await response.json();
+                    const requests = data.requests || [];
+                    const answeredRequest = requests.find(req =>
+                        req.response && (req.id === currentState.pendingRequestId || !currentState.pendingRequestId)
+                    );
+                    if (answeredRequest) {
+                        const date = new Date(answeredRequest.date.replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3-$2-$1')).toLocaleString('ru-RU');
+                        const chatBox = document.getElementById('chat-box');
+                        chatBox.innerHTML += `<div class="bot-message">
+                            <div class="bot-header">Робот ЧаВоВЭД</div>
+                            Получен ответ на ваш запрос ${escapeHtml(answeredRequest.id)} от ${date}:<br>${escapeHtml(answeredRequest.response)}
+                            <div class="options-container">
+                                <button class="option-btn" onclick="showMainMenu()">Задать новый вопрос</button>
+                                <button class="option-btn" onclick="window.location.href='lk.html'">Перейти в Личный кабинет</button>
+                            </div>
+                        </div>`;
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        currentState.pendingRequestId = null;
+                        currentState.pollingAttempts = 0;
+                    } else {
+                        setTimeout(checkNotification, 5000);
+                    }
+                } catch (error) {
+                    setTimeout(checkNotification, 5000);
+                }
+            };
+            setTimeout(checkNotification, 5000);
+        }
+
+        // Initialize
+        showWelcomeMessage();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93aa2b5fc927bf66',t:'MTc0NjM4NDQ3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
