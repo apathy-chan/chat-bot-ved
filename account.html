@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лицевой счёт | Личный кабинет участника ВЭД ФТС России</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="Logo.png" alt="ФТС России">
+                    <div class="logo-text">
+                        <h1>Личный кабинет участника ВЭД</h1>
+                        <p>Федеральная таможенная служба</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="help-btn" onclick="window.location.href='index.html?section=account&referrer=' + encodeURIComponent(window.location.pathname)">
+                        <img src="Help.png" alt="Помощь" style="width:24px; height:24px;">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="navigation-cards">
+        <div class="container">
+            <div class="cards-container">
+                <a href="glavnaya.html" class="nav-card">
+                    <div class="card-content">Главная</div>
+                </a>
+                <a href="pre-info.html" class="nav-card">
+                    <div class="card-content">Предварительное информирование</div>
+                </a>
+                <a href="account.html" class="nav-card active">
+                    <div class="card-content">Лицевой счет</div>
+                </a>
+                <a href="archive.html" class="nav-card">
+                    <div class="card-content">Электронный архив</div>
+                </a>
+                <a href="signature.html" class="nav-card">
+                    <div class="card-content">Электронная подпись</div>
+                </a>
+                <a href="customs-procedures.html" class="nav-card">
+                    <div class="card-content">Таможенные процедуры</div>
+                </a>
+                <a href="lk.html" class="nav-card">
+                    <div class="card-content">Личный кабинет</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1 class="section-title">Лицевой счёт</h1>
+
+            <div class="account-summary">
+                <div class="balance-card">
+                    <h3>Текущий баланс</h3>
+                    <div class="amount">45 678,90 ₽</div>
+                    <div class="actions">
+                        <button class="action-btn">Пополнить счёт</button>
+                        <button class="action-btn">История операций</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Последние операции</h2>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Тип операции</th>
+                            <th>Сумма</th>
+                            <th>Назначение</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15.04.2025</td>
+                            <td>Оплата таможенных платежей</td>
+                            <td>12 450,00 ₽</td>
+                            <td>ДТ №1234567890</td>
+                            <td><span class="status completed">Завершено</span></td>
+                        </tr>
+                        <tr>
+                            <td>10.04.2025</td>
+                            <td>Пополнение счёта</td>
+                            <td>50 000,00 ₽</td>
+                            <td>Банковский перевод</td>
+                            <td><span class="status completed">Завершено</span></td>
+                        </tr>
+                        <tr>
+                            <td>05.04.2025</td>
+                            <td>Оплата таможенных сборов</td>
+                            <td>3 750,00 ₽</td>
+                            <td>Сбор за таможенное оформление</td>
+                            <td><span class="status completed">Завершено</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <button class="show-more">Показать ещё</button>
+                    <div class="pagination">
+                        <span class="page active">1</span>
+                        <span class="page">2</span>
+                        <span class="page">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 Федеральная таможенная служба</p>
+            <p>Телефон справочной службы: 7 (499) 449-77-71</p>
+        </div>
+    </footer>
+</body>
+</html>

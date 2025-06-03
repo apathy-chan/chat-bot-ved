@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Предварительное информирование | Личный кабинет участника ВЭД ФТС России</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="Logo.png" alt="ФТС России">
+                    <div class="logo-text">
+                        <h1>Личный кабинет участника ВЭД</h1>
+                        <p>Федеральная таможенная служба</p>
+                    </div>
+                </div>
+                 <div class="user-actions">
+                    <button class="help-btn" onclick="window.location.href='index.html?section=pre-info&referrer=' + encodeURIComponent(window.location.pathname)">
+                        <img src="Help.png" alt="Помощь" style="width:24px; height:24px;">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="navigation-cards">
+        <div class="container">
+            <div class="cards-container">
+                <a href="glavnaya.html" class="nav-card">
+                    <div class="card-content">Главная</div>
+                </a>
+                <a href="pre-info.html" class="nav-card active">
+                    <div class="card-content">Предварительное информирование</div>
+                </a>
+                <a href="account.html" class="nav-card">
+                    <div class="card-content">Лицевой счет</div>
+                </a>
+                <a href="archive.html" class="nav-card">
+                    <div class="card-content">Электронный архив</div>
+                </a>
+                <a href="registration.html" class="nav-card">
+                    <div class="card-content">Регистрация</div>
+                </a>
+                <a href="customs-procedures.html" class="nav-card">
+                    <div class="card-content">Таможенные процедуры</div>
+                </a>
+                <a href="lk.html" class="nav-card">
+                    <div class="card-content">Личный кабинет</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1 class="section-title">Предварительное информирование на автомобильном виде транспорта</h1>
+
+            <div class="info-section">
+                <h2>Список ранее созданной Предварительной информации</h2>
+
+                <button class="create-btn">СОЗДАТЬ УВЕДОМЛЕНИЕ О ТРАНЗИТЕ ТОВАРОВ (МДП)</button>
+                <button class="create-btn">СОЗДАТЬ УВЕДОМЛЕНИЕ О ПРИБЫТИИ (АЛА ТРАНСПОРТ)</button>
+                <button class="create-btn">СОЗДАТЬ УВЕДОМЛЕНИЕ О ТРАНЗИТЕ ТОВАРОВ (ТД)</button>
+
+                <h3>УВЕДОМЛЕНИЕ ОБ УБЫТИИ (АЛА ТРАНСПОРТ)</h3>
+
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Рег. номер</th>
+                            <th>Краткая информация</th>
+                            <th>Примечание</th>
+                            <th>Дата обновления</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Нет данных для отображения</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="margin-top: 10px;">Отображаются записи с 0 по 0, всего 0.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 Федеральная таможенная служба</p>
+            <p>Телефон справочной службы: 7 (499) 449-77-71</p>
+        </div>
+    </footer>
+</body>
+</html>
