@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет | ФТС России</title>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        /* Основные стили */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Шапка сайта */
+        .site-header {
+            background-color: #2d6a4f;
+            color: white;
+            padding: 15px 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 50px;
+            margin-right: 15px;
+        }
+
+        .logo-text h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .logo-text p {
+            font-size: 14px;
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-name {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .help-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Навигация */
+        .navigation-cards {
+            background-color: #f0f0f0;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-card {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .nav-card:hover, .nav-card.active {
+            background-color: #2d6a4f;
+            color: white;
+        }
+
+        /* Основное содержимое */
+        .main-content {
+            padding: 30px 0;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2d6a4f;
+            font-weight: normal;
+        }
+
+        /* Профиль пользователя */
+        .profile-section {
+            background: white;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            margin-bottom: 20px;
+        }
+
+        .profile-header h2 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .profile-header p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .info-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            color: #388e3c;
+        }
+
+        /* Кнопки */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            background: none;
+            color: #333;
+        }
+
+        .btn:hover {
+            background-color: #f5f5f5;
+        }
+
+        .btn-primary {
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #1b4332;
+        }
+
+        /* Социальные сети */
+        .social-links {
+            margin-top: 15px;
+        }
+
+        .social-links a {
+            color: #555;
+            text-decoration: none;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .request-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .request-id {
+            font-weight: bold;
+            color: #2d6a4f;
+        }
+        .request-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .request-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .status-new {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        .status-in-progress {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        .status-resolved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .response-box {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 3px solid #2d6a4f;
+        }
+        .no-requests {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="Logo.png" alt="Логотип ФТС России">
+                    <div class="logo-text">
+                        <h1>Личный кабинет участника ВЭД</h1>
+                        <p>Федеральная таможенная служба</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <span class="user-name" id="userName"></span>
+                    <button class="help-btn" onclick="window.location.href='index.html?section=lk&referrer=' + encodeURIComponent(window.location.pathname)">
+                        <img src="Help.png" alt="Помощь" style="width:24px; height:24px;">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="navigation-cards">
+        <div class="container">
+            <div class="cards-container">
+                <a href="glavnaya.html" class="nav-card">Главная</a>
+                <a href="pre-info.html" class="nav-card">Предварительное информирование</a>
+                <a href="account.html" class="nav-card">Лицевой счет</a>
+                <a href="archive.html" class="nav-card">Электронный архив</a>
+                <a href="signature.html" class="nav-card">Электронная подпись</a>
+                <a href="customs-procedures.html" class="nav-card">Таможенные процедуры</a>
+                <a href="lk.html" class="nav-card active">Личный кабинет</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основное содержимое -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="section-title">Личный кабинет</h1>
+
+            <!-- Профиль пользователя -->
+            <section class="profile-section">
+                <div class="profile-header">
+                    <h2 id="profile-heading">admin</h2>
+                    <p>ООО "Торговая Компания"</p>
+                    <p>Администратор системы</p>
+                </div>
+
+                <table class="info-table">
+                    <tr>
+                        <td>Email:</td>
+                        <td><a href="mailto:ivanov@company.ru">ivanov@company.ru</a></td>
+                    </tr>
+                    <tr>
+                        <td>Телефон:</td>
+                        <td>+7 (123) 456-78-90</td>
+                    </tr>
+                </table>
+
+                <h3>Настройки безопасности</h3>
+                <table class="info-table">
+                    <tr>
+                        <td>Последний вход:</td>
+                        <td>15.04.2025 в 14:30</td>
+                    </tr>
+                    <tr>
+                        <td>Двухфакторная аутентификация:</td>
+                        <td class="status">Включена</td>
+                    </tr>
+                </table>
+
+
+                <section class="profile-section">
+                    <h2>Мои обращения в поддержку</h2>
+
+                    <div id="support-requests">
+                        <p>Загрузка обращений...</p>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="window.location.href='SPP.html'">Новое обращение</button>
+
+                    <script>
+                        // Функция для загрузки обращений
+                        async function loadSupportRequests() {
+                            try {
+                                const username = sessionStorage.getItem('currentUser') || 'user1';
+                                const response = await fetch(`http://localhost:5000/api/support-requests?user=${username}`);
+
+                                if (!response.ok) {
+                                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                                }
+
+                                const data = await response.json();
+                                const container = document.getElementById('support-requests');
+                                container.innerHTML = '';
+
+                                if (data.requests && data.requests.length > 0) {
+                                    data.requests.forEach(request => {
+                                        const requestElement = document.createElement('div');
+                                        requestElement.className = 'request-item';
+                                        requestElement.dataset.requestId = request.id;
+
+                                        // Форматируем дату
+                                        const requestDate = request.date_added ?
+                                            new Date(request.date_added).toLocaleString('ru-RU') :
+                                            'Дата не указана';
+
+                                        // Определяем класс статуса
+                                        let statusClass = 'status-new';
+                                        let statusText = 'Новое';
+
+                                        if (request.status === 'in-progress') {
+                                            statusClass = 'status-in-progress';
+                                            statusText = 'В работе';
+                                        } else if (request.status === 'resolved' || request.status === 'processed') {
+                                            statusClass = 'status-resolved';
+                                            statusText = 'Решено';
+                                        } else if (request.status === 'closed') {
+                                            statusClass = 'status-resolved';
+                                            statusText = 'Закрыто';
+                                        }
+
+                                        requestElement.innerHTML = `
+                                            <div class="request-header">
+                                                <span class="request-id">REQ-${request.id}</span>
+                                                <span class="request-date">${requestDate}</span>
+                                                <span class="request-status ${statusClass}">${statusText}</span>
+                                            </div>
+                                            <div class="request-text">${request.question || 'Текст не указан'}</div>
+                                            ${request.answer ? `
+                                                <div class="response-box">
+                                                    <strong>Ответ поддержки:</strong>
+                                                    <p>${request.answer}</p>
+                                                </div>
+                                            ` : '<p>Ответ ещё не получен</p>'}
+                                        `;
+                                        container.appendChild(requestElement);
+                                    });
+                                } else {
+                                    container.innerHTML = '<p class="no-requests">У вас пока нет обращений в поддержку</p>';
+                                }
+                            } catch (error) {
+                                console.error('Ошибка загрузки:', error);
+                                document.getElementById('support-requests').innerHTML =
+                                    '<p class="error-message">Ошибка загрузки. Пожалуйста, обновите страницу.</p>';
+                            }
+                        }
+
+                        // Функция для обновления запроса в интерфейсе
+                        function updateRequestInUI(request) {
+                            const container = document.getElementById('support-requests');
+                            const requestElement = document.querySelector(`[data-request-id="${request.id}"]`);
+
+                            if (requestElement) {
+                                // Обновляем существующий запрос
+                                const requestDate = request.date_added ?
+                                    new Date(request.date_added).toLocaleString('ru-RU') :
+                                    'Дата не указана';
+
+                                let statusClass = 'status-new';
+                                let statusText = 'Новое';
+
+                                if (request.status === 'in-progress') {
+                                    statusClass = 'status-in-progress';
+                                    statusText = 'В работе';
+                                } else if (request.status === 'resolved' || request.status === 'processed') {
+                                    statusClass = 'status-resolved';
+                                    statusText = 'Решено';
+                                } else if (request.status === 'closed') {
+                                    statusClass = 'status-resolved';
+                                    statusText = 'Закрыто';
+                                }
+
+                                requestElement.innerHTML = `
+                                    <div class="request-header">
+                                        <span class="request-id">REQ-${request.id}</span>
+                                        <span class="request-date">${requestDate}</span>
+                                        <span class="request-status ${statusClass}">${statusText}</span>
+                                    </div>
+                                    <div class="request-text">${request.question || 'Текст не указан'}</div>
+                                    ${request.answer ? `
+                                        <div class="response-box">
+                                            <strong>Ответ поддержки:</strong>
+                                            <p>${request.answer}</p>
+                                        </div>
+                                    ` : '<p>Ответ ещё не получен</p>'}
+                                `;
+                            } else {
+                                // Добавляем новый запрос
+                                loadSupportRequests();
+                            }
+                        }
+
+                        // Инициализация WebSocket
+                        const socket = io('http://localhost:5000', {
+                            reconnection: true,
+                            reconnectionAttempts: 5,
+                            reconnectionDelay: 1000
+                        });
+
+                        socket.on('connect', () => {
+                            console.log('Connected to WebSocket');
+                        });
+
+                        socket.on('disconnect', () => {
+                            console.log('Disconnected from WebSocket');
+                            startPolling();
+                        });
+
+                        // Обработчики событий WebSocket
+                        socket.on('new_request', (request) => {
+                            if (request.user === (sessionStorage.getItem('currentUser') || 'user1')) {
+                                updateRequestInUI(request);
+                            }
+                        });
+
+                        socket.on('update_request', (request) => {
+                            if (request.user === (sessionStorage.getItem('currentUser') || 'user1')) {
+                                updateRequestInUI(request);
+                            }
+                        });
+
+                        // Fallback polling
+                        function startPolling() {
+                            const interval = setInterval(() => {
+                                if (socket.connected) {
+                                    clearInterval(interval);
+                                } else {
+                                    loadSupportRequests();
+                                }
+                            }, 5000);
+                        }
+
+                        // Автообновление каждые 30 секунд
+                        setInterval(loadSupportRequests, 30000);
+
+                        // Первая загрузка при открытии страницы
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const userName = sessionStorage.getItem('currentUser');
+                            if (!userName) {
+                                window.location.href = 'vhod.html';
+                            } else {
+                                loadSupportRequests();
+                                if (!socket.connected) {
+                                    startPolling();
+                                }
+                            }
+                        });
+                    </script>
+                </section>
+
+    <!-- Подвал сайта -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>© 2025 Федеральная таможенная служба</p>
+        </div>
+    </footer>
+</body>
+</html>
